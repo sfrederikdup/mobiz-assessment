@@ -13,6 +13,10 @@
 
     <AddContact @change-page="goToActionPage" />
 
+    <EditContact @change-page="goToActionPage" />
+
+    <!-- <RemoveContact @change-page="goToActionPage" /> -->
+
     <v-data-table
       :headers="headers"
       :items="contacts"
@@ -23,7 +27,34 @@
       item-key="id"
       class="elevation-1 mt-4"
       hide-default-footer
-    ></v-data-table>
+      sort-by="firstName"
+    >
+      
+    <template v-slot:item.actions="{item}">
+      <v-icon
+        small
+        class="mr-2"
+      >
+        mdi-eye
+      </v-icon>
+      <v-icon
+        small
+        class="mr-2"
+        @click="editContact(item)"
+      >
+        mdi-pencil
+      </v-icon>
+      <v-icon
+        small
+      >
+        mdi-delete
+      </v-icon>
+    </template>
+
+    <!-- <template v-slot:no-data>
+      <v-btn color="primary" @click="initialize">Reset</v-btn>
+    </template> -->
+    </v-data-table>
     <div class="text-center">
       <v-pagination v-model="page" :length="pageCount"></v-pagination>
     </div>
@@ -40,21 +71,25 @@
 import Vue from "vue";
 import { mapState, mapActions } from "vuex";
 import { Context } from "@nuxt/types";
+import { eventBus } from "@/eventBus"
 
 export default Vue.extend({
   name: "Contacts",
   middleware: (context: Context) => {
     context.store.dispatch("contact/loadContacts", {});
+    context.store.dispatch("contact/updateContact", {});
+    // context.store.dispatch("contact/removeContact", {});
   },
   data: () => {
     return {
-      itemsPerPage: 2,
+      itemsPerPage: 10,
       page: 1,
       pageCount: 0,
       headers: [
         { text: "First Name", value: "firstName" },
         { text: "Last Name", value: "lastName" },
         { text: "Cellphone", value: "cellphone" },
+        { text: 'Actions', value: 'actions', sortable: false },
       ],
     };
   },
@@ -76,16 +111,38 @@ export default Vue.extend({
   methods: {
     ...mapActions("contact", {
       updateAddContactDialog: "updateAddContactDialog",
+      updateEditContactDialog: "updateEditContactDialog",
+      // updateRemoveContactDialog: "updateRemoveContactDialog",
       updateShowNotification: "updateShowNotification",
       loadContacts: "loadContacts",
+      updateContact: "updateContact",
+      // removeContact: "removeContact",
     }),
     addContact() {
       this.updateAddContactDialog(true);
     },
+    editContact(item: any) {
+      if (item) {
+        eventBus.$emit("open-edit-contact-modal", item);
+        this.updateEditContactDialog(true);
+      }
+    },
+    // removeContact(item: any) {
+    //   if (item) {
+    //     eventBus.$emit("open-remove-contact-modal", item);
+    //     this.updateRemoveContactDialog(true);
+    //   }
+    // },
     async goToActionPage(action: string) {
       if (action === "add") {
         await this.loadContacts({});
       }
+      if (action === "patch") {
+        await this.updateContact({});
+      }
+      // if (action === "delete") {
+      //   await this.removeContact({});
+      // }
     },
   },
 });

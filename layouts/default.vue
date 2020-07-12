@@ -82,6 +82,11 @@ export default {
           title: 'Inspire',
           to: '/inspire',
         },
+        {
+          icon: 'mdi-account-multiple',
+          title: 'Contacts',
+          to: '/contacts',
+        },
       ],
       miniVariant: false,
       right: true,
